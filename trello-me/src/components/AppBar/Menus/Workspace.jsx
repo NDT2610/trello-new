@@ -11,6 +11,7 @@ import ContentCopy from '@mui/icons-material/ContentCopy'
 import ContentPaste from '@mui/icons-material/ContentPaste'
 import Cloud from '@mui/icons-material/Cloud'
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
+import Box from '@mui/material/Box'
 function Workspace() {
   const [anchorEl, setAnchorEl] = React.useState(null)
   const open = Boolean(anchorEl)
@@ -22,7 +23,7 @@ function Workspace() {
   }
 
   return (
-    <div>
+    <Box>
       <Button
         id="basic-button-workspace"
         aria-controls={open ? 'basic-menu' : undefined}
@@ -77,7 +78,7 @@ function Workspace() {
           <ListItemText>Web Clipboard</ListItemText>
         </MenuItem>
       </Menu>
-    </div>
+    </Box>
   )
 }
 

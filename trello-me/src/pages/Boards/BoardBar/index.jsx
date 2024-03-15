@@ -7,8 +7,8 @@ import BoltIcon from '@mui/icons-material/Bolt'
 import FilterListIcon from '@mui/icons-material/FilterList'
 import Avatar from '@mui/material/Avatar'
 import AvatarGroup from '@mui/material/AvatarGroup'
-import Tooltip from '@mui/material/Chip'
-
+import Button from '@mui/material/Button'
+import PersonAddIcon from '@mui/icons-material/PersonAdd'
 const MENU_STYLES = {
   color: 'primary.main',
   bgcolor: 'white',
@@ -68,17 +68,49 @@ function BoardBar() {
           clickable />
       </Box>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-        <Tooltip>
-          <AvatarGroup max={4}>
-            <Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
-            <Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
-            <Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
-            <Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
-            <Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
-            <Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
-            <Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
-          </AvatarGroup>
-        </Tooltip>
+        <Button variant="outlined" sx={{ display: 'flex', height: '32px', width: '100%', gap: 2 }} >
+          <PersonAddIcon sx={{ fontSize: 'medium' }} />
+          Invite
+        </Button>
+        <AvatarGroup
+          max={5}
+          sx={{
+            '& .MuiAvatar-root': {
+              width: 34,
+              height: 34,
+              fontSize: 16
+            }
+          }}
+        >
+          <Avatar
+            alt="Tiến Đạt"
+            src="https://ca.slack-edge.com/T02MC5CEEPR-U06BLJ0DQC8-27bc4def7ffd-512"
+          />
+          <Avatar
+            alt="Thanh Xuân"
+            src="https://ca.slack-edge.com/T02MC5CEEPR-U03F9NR0TPZ-1726ad464fae-512"
+          />
+          <Avatar
+            alt="Quế Anh"
+            src="https://ca.slack-edge.com/T02MC5CEEPR-U0510CYT695-2728cba287b3-512"
+          />
+          <Avatar
+            alt="Remy Sharp"
+            src="https://ca.slack-edge.com/T02MC5CEEPR-U063Q9DJ734-0180b253dd88-512"
+          />
+          <Avatar
+            alt="Remy Sharp"
+            src="https://png.pngtree.com/png-clipart/20200224/original/pngtree-cartoon-color-simple-male-avatar-png-image_5230557.jpg"
+          />
+          <Avatar
+            alt="Remy Sharp"
+            src="https://png.pngtree.com/png-clipart/20200224/original/pngtree-cartoon-color-simple-male-avatar-png-image_5230557.jpg"
+          />
+          <Avatar
+            alt="Remy Sharp"
+            src="https://png.pngtree.com/png-clipart/20200224/original/pngtree-cartoon-color-simple-male-avatar-png-image_5230557.jpg"
+          />
+        </AvatarGroup>
       </Box>
     </Box>
   )
