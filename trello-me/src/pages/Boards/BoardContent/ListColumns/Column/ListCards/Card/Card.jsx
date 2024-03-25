@@ -7,41 +7,61 @@ import ModeCommentIcon from '@mui/icons-material/ModeComment'
 import AttachmentIcon from '@mui/icons-material/Attachment'
 import Typography from '@mui/material/Typography'
 import Button from '@mui/material/Button'
+import { useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 
-function Card({ temporaryHideMedia }) {
-  // eslint-disable-next-line no-undef
-  if ( temporaryHideMedia ) {
-    return (
-      <MuiCard sx={{
+function Card({ card }) {
+  const {
+    attributes, listeners, setNodeRef,
+    transform,
+    transition,
+    isDragging
+  } = useSortable({
+    id: card._id,
+    data: { ...card }
+  })
+
+  const style = {
+    transform: CSS.Translate.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 :undefined,
+    border: isDragging ? '1px solid #2ecc71' : undefined
+  }
+
+  const shouldShowCardActions = () => {
+    return !!card?.memberIds?.length || !!card?.comments?.length || !!card?.attachments?.length
+  }
+  return (
+    <MuiCard
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      sx={{
         maxWidth: 345,
         boxShadow: '0 1px 1px rgba(0, 0, 0, 0.2)',
         overflow: 'unset'
       }}>
-        <CardContent>
-          <Typography>Card 1</Typography>
-        </CardContent>
-      </MuiCard>
-    )
-  }
-  return (
-    <MuiCard sx={{
-      maxWidth: 345,
-      boxShadow: '0 1px 1px rgba(0, 0, 0, 0.2)',
-      overflow: 'unset'
-    }}>
-      <CardMedia
-        sx={{ height: 140 }}
-        image="https://www.shutterstock.com/image-photo/palm-tree-on-tropical-beach-600nw-2154569741.jpg"
-        title="green iguana"
-      />
+      {card?.cover &&
+        <CardMedia
+          sx={{ height: 140 }}
+          image= {card?.cover}
+        />}
       <CardContent>
-        <Typography>Trello Clone</Typography>
+        <Typography>{card?.title}</Typography>
       </CardContent>
+
+      {shouldShowCardActions() &&
       <CardActions sx={{ p : '0 4px 8px 4px' }}>
-        <Button size="small" startIcon={<GroupIcon />}>20</Button>
-        <Button size="small" startIcon={<ModeCommentIcon />}>15</Button>
-        <Button size="small" startIcon={<AttachmentIcon />}>10</Button>
-      </CardActions>
+        {!!card?.memberIds?.length &&
+        <Button size="small" startIcon={<GroupIcon />}>{card?.memberIds?.length}</Button>
+        }
+        {!!card?.comments?.length &&
+        <Button size="small" startIcon={<ModeCommentIcon />}>{card?.comments.length}</Button>
+        }
+        {!!card?.attachments?.length &&
+        <Button size="small" startIcon={<AttachmentIcon />}>{card?.attachments?.length}</Button>}
+      </CardActions>}
     </MuiCard>
   )
 }
