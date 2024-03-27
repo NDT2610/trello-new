@@ -1,3 +1,4 @@
+import React from 'react'
 import { Box, Typography } from '@mui/material'
 import ModeSelect from '~/components/ModeSelect'
 import AppsIcon from '@mui/icons-material/Apps'
@@ -13,7 +14,14 @@ import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone'
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
 import Tooltip from '@mui/material/Tooltip'
 import Profile from './Menus/Profile'
+import Drawer from '@mui/material/Drawer'
+import TemporaryDrawer from './SideBars'
 function AppBar() {
+  const [open, setOpen] = React.useState(false)
+
+  const toggleDrawer = (newOpen) => () => {
+    setOpen(newOpen)
+  }
   return (
     <Box px={2} sx={{
       width:'100%',
@@ -26,7 +34,10 @@ function AppBar() {
     }}
     >
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-        <AppsIcon sx = {{ color: 'primary.main' }} />
+        <Button onClick={toggleDrawer(true)}><AppsIcon sx = {{ color: 'primary.main' }} /></Button>
+        <Drawer open={open} onClose={toggleDrawer(false)}>
+          <TemporaryDrawer/>
+        </Drawer>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, cursor: 'pointer', color: 'primary.main' }}>
           <img src={Trello} className='icon' alt="logo" style={{ color: 'primary.main' }}/>
           <Typography variant='span' sx={{ fontSize: '1rem', fontWeight: 'bold', color: 'primary.main' }}> Trello </Typography>
