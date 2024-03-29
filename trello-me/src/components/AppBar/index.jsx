@@ -40,7 +40,7 @@ function AppBar() {
         </Drawer>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, cursor: 'pointer', color: 'primary.main' }}>
           <img src={Trello} className='icon' alt="logo" style={{ color: 'primary.main' }}/>
-          <Typography variant='span' sx={{ fontSize: '1rem', fontWeight: 'bold', color: 'primary.main' }}> Trello </Typography>
+          <Typography variant='span' sx={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'primary.main' }}> Trello </Typography>
         </Box>
         <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 1 }}>
           <Workspace />
