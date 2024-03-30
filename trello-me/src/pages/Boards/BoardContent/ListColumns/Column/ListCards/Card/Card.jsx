@@ -1,4 +1,4 @@
-import { Card as MuiCard } from '@mui/material'
+import { Card as MuiCard, TextField } from '@mui/material'
 import CardActions from '@mui/material/CardActions'
 import CardContent from '@mui/material/CardContent'
 import CardMedia from '@mui/material/CardMedia'
@@ -9,8 +9,19 @@ import Typography from '@mui/material/Typography'
 import Button from '@mui/material/Button'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import { useState } from 'react'
 
 function Card({ card }) {
+  const [title, setTitle] = useState(card.title)
+  const [editingTitle, setEditingTitle] = useState(false)
+
+  const handleTitleChange = (e) => {
+    setTitle(e.target.value)
+  }
+  const handleSaveTitle = () => {
+    card.title = title
+    setEditingTitle(false)
+  }
   const {
     attributes, listeners, setNodeRef,
     transform,
@@ -48,7 +59,21 @@ function Card({ card }) {
           image= {card?.cover}
         />}
       <CardContent>
-        <Typography>{card?.title}</Typography>
+        {editingTitle ? (
+          <>
+            <TextField
+              value={ title }
+              onChange={handleTitleChange}
+              autoFocus
+            />
+            <Button onClick={handleSaveTitle}>Save</Button>
+          </>
+        ) : (
+          <Typography
+            onClick={() => {setEditingTitle(true)}}
+          >{title}</Typography>
+        )
+        }
       </CardContent>
 
       {shouldShowCardActions() &&

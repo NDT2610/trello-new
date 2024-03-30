@@ -16,17 +16,34 @@ import DragHandleIcon from '@mui/icons-material/DragHandle'
 import Tooltip from '@mui/material/Tooltip'
 import Button from '@mui/material/Button'
 import { mapOrder } from '~/utils/sorts'
-
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-
 import { useState } from 'react'
 import Box from '@mui/material/Box'
 import ListCards from './ListCards/ListCards'
+import { TextField } from '@mui/material'
 
 
 function Column({ column }) {
   const [anchorEl, setAnchorEl] = useState(null)
+  const [title, setTitle] = useState(column.title)
+  const [editingTitle, setEditingTitle] = useState(false)
+  const [newTitle, setNewTitle] = useState(column.title)
+  const handleTitleChange = (e) => {
+    setTitle(e.target.value)
+  }
+  const handleSaveTitle = () => {
+    setTitle(newTitle)
+    setEditingTitle(false)
+    // Perform save action here (e.g., update database)
+  }
+
+  const handleTitleSubmit = () => {
+    column.title = title
+    setEditingTitle(false)
+  }
+
+
   const open = Boolean(anchorEl)
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget)
@@ -79,12 +96,26 @@ function Column({ column }) {
           alignItems: 'center',
           justifyContent: 'space-between'
         }}>
-          <Typography sx={{
-            fontWeight: 'bold',
-            cursor: 'pointer'
-          }}>
-            {column.title}
-          </Typography>
+          {editingTitle ? (
+            <>
+              <TextField
+                value = { title }
+                onChange = { handleTitleChange }
+                onBlur = { handleTitleSubmit }
+                autofocus
+              />
+              <Button onClick={handleSaveTitle}>Save</Button>
+            </>
+
+          ): (
+            <Typography sx={{
+              fontWeight: 'bold',
+              cursor: 'pointer'
+            }}
+            onClick={() => {setEditingTitle(true), setNewTitle(title)}} >
+              {title}
+            </Typography>
+          )}
           <Box>
             <Tooltip title= 'More Option'>
               <ExpandMoreIcon
