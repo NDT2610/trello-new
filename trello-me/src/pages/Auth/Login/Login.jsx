@@ -37,9 +37,11 @@ export default function SignInSide() {
         throw new Error(errorData.message)
       }
 
-      const { accessToken } = await response.json()
+      const { accessToken, id } = await response.json()
       // Save the JWT token to localStorage
       localStorage.setItem('accessToken', accessToken)
+      // Save the JWT token to localStorage
+      localStorage.setItem('id', id)
 
       window.location.href = '/HomePage'
     } catch (error) {
