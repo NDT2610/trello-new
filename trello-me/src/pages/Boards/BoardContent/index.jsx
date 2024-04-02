@@ -14,8 +14,12 @@ import { useEffect, useState } from 'react'
 import { arrayMove } from '@dnd-kit/sortable'
 import Column from './ListColumns/Column/Column'
 import Card from './ListColumns/Column/ListCards/Card/Card'
-import { cloneDeep } from 'lodash'
-
+import { cloneDeep, isEmpty } from 'lodash'
+import TextField from '@mui/material/TextField'
+import Button from '@mui/material/Button'
+import AddIcon from '@mui/icons-material/Add'
+import generateUniqueId from '../../../api/RandomId'
+import { placeHolderCard } from '../../../utils/formasters'
 const ACTIVE_DRAG_ITEM_TYPE = {
   COLUMN: 'ACTIVE_DRAG_ITEM_TYPE_COLLUMN',
   CARD:'ACTIVE_DRAG_ITEM_TYPE_CARD'
@@ -30,16 +34,43 @@ function BoardContent({ board }) {
   const [activeDrgagItemIdType, setActiveDrgagItemIdType] = useState(null)
   const [activeDrgagItemIdData, setActiveDrgagItemIdData] = useState(null)
   const [oldColumn, setOldColumn] = useState(null)
+  const [showColumnNameInput, setShowColumnNameInput] = useState(false)
+  const [newColumnName, setNewColumnName] = useState('')
+  const [columns, setColumns] = useState(board.columns)
+  useEffect
+  const handleToggleColumnNameInput = () => {
+    setShowColumnNameInput(!showColumnNameInput)
+    setNewColumnName('')
+  }
+
+  const handleSaveColumnName = () => {
+    if (newColumnName.length !== 0) {
+      const newColumn = {
+        _id: generateUniqueId(),
+        boardId: columns[0].boardId,
+        title: newColumnName.trim(),
+        cards: [],
+        cardOrderIds: []
+      }
+
+      const updatedColumns = Array.isArray(columns) ? [...columns, newColumn] : [newColumn]
+      setOrderedColumn(mapOrder(updatedColumns, board.columnOrderIds, '_id'))
+      setColumns( updatedColumns )
+
+      setShowColumnNameInput(false)
+    } else {
+      // eslint-disable-next-line no-console
+      console.log('Column name cannot be empty')
+    }
+  }
   useEffect(() => {
     setOrderedColumn(mapOrder(board?.columns, board?.columnOrderIds, '_id'))
   }, [board])
-  console.log(board)
   const findColumnByCardId = (cardId) => {
     return orderedColumns.find(column => column.cards.map(card => card._id)?.includes(cardId))
   }
 
   const handleDragEnd = (event) => {
-    // console.log('handleOnDragEnd', event)
     const { active, over } = event
     if (!over || !active) return
     if (activeDrgagItemIdType === ACTIVE_DRAG_ITEM_TYPE.CARD) {
@@ -76,6 +107,10 @@ function BoardContent({ board }) {
 
             nextActiveColumn.cards = nextActiveColumn.cards.filter(card => card._id !== activeDraggingCardId)
 
+            if (isEmpty(nextActiveColumn.cards)) {
+              nextActiveColumn.cards = [placeHolderCard(nextActiveColumn)]
+            }
+
             nextActiveColumn.cardOrderIds = nextActiveColumn.cards.map(card => card._id)
           }
 
@@ -83,6 +118,8 @@ function BoardContent({ board }) {
             nextOverColumn.cards = nextOverColumn.cards.filter(card => card._id !== activeDraggingCardId)
 
             nextOverColumn.cards = nextOverColumn.cards.toSpliced(newCardIndex, 0, { ...activeDraggingCardData, columnId: nextOverColumn._id })
+
+            nextOverColumn.cards = nextOverColumn.cards.filter(card => !card.FE_PlaceholderCard)
 
             nextOverColumn.cardOrderIds = nextOverColumn.cards.map(card => card._id)
           }
@@ -179,6 +216,10 @@ function BoardContent({ board }) {
 
           nextActiveColumn.cards = nextActiveColumn.cards.filter(card => card._id !== activeDraggingCardId)
 
+          if (isEmpty(nextActiveColumn.cards)) {
+            nextActiveColumn.cards = [placeHolderCard(nextActiveColumn)]
+          }
+
           nextActiveColumn.cardOrderIds = nextActiveColumn.cards.map(card => card._id)
         }
 
@@ -186,6 +227,8 @@ function BoardContent({ board }) {
           nextOverColumn.cards = nextOverColumn.cards.filter(card => card._id !== activeDraggingCardId)
 
           nextOverColumn.cards = nextOverColumn.cards.toSpliced(newCardIndex, 0, activeDraggingCardData)
+
+          nextOverColumn.cards = nextOverColumn.cards.filter(card => !card.FE_PlaceholderCard)
 
           nextOverColumn.cardOrderIds = nextOverColumn.cards.map(card => card._id)
         }
@@ -208,11 +251,53 @@ function BoardContent({ board }) {
     >
       <Box sx = {{
         width: '100%',
+        overflowX: 'auto  ',
+        overflowY: 'auto',
         height: (theme) => theme.trello.boardContentHeight,
         display: 'flex',
         p: '10px 0'
       }}>
-        <ListColumns columns={orderedColumns} />
+        <Box sx={{ display: 'flex' }}>
+          <ListColumns columns={orderedColumns} />
+          <Box sx={{
+            minWidth: '200px',
+            maxWidth: '200px',
+            mx: 2,
+            borderRadius: '6px'
+          }}>
+            {/* Toggle between input field and button */}
+            {showColumnNameInput ? (
+              <>
+                <TextField
+                  value={newColumnName}
+                  onChange={(e) => setNewColumnName(e.target.value)}
+                  label="New Column Name"
+                  variant="outlined"
+                  size="small"
+                  sx={{ flex: 1, mr: 1 }}
+                />
+                <Button
+                  onClick={handleSaveColumnName}
+                  startIcon={<AddIcon />}
+                  sx={{ color: 'white', pl: 2.5, py: 1, display: 'flex', marginTop: '10px' }}
+                  variant="contained"
+                >
+                    Save
+                </Button>
+              </>
+            ) : (
+              <Button
+                onClick={handleToggleColumnNameInput}
+                startIcon={<AddIcon />}
+                sx={{ color: 'white', pl: 2.5, py: 1 }}
+                variant="contained"
+              >
+                  Add Column
+              </Button>
+            )}
+          </Box>
+        </Box>
+
         <DragOverlay dropAnimation={dropAnimation}>
           {(!activeDrgagItemIdType) && null}
           {(activeDrgagItemIdType === ACTIVE_DRAG_ITEM_TYPE.COLUMN) && <Column column={activeDrgagItemIdData}/>}

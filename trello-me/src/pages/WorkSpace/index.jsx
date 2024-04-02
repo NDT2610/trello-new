@@ -11,7 +11,10 @@ function Workspace() {
   return (
     <Box
       sx={{
-        height: '100vh'
+        height: '100vh',
+        width: '100%',
+        overflowX: 'auto',
+        overflowY: 'auto'
       }}>
       <Box>
         <AppBar/>

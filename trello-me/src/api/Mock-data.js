@@ -4,9 +4,7 @@ export const mockData = {
     title: 'Rubicon',
     description: 'Demo',
     type: 'public', // 'private'
-    ownerIds: [], // Những users là Admin của board
-    memberIds: [], // Những users là member bình thường của board
-    columnOrderIds: ['column-id-01', 'column-id-03', 'column-id-02'], // Thứ tự sắp xếp / vị trí của các Columns trong 1 boards
+    columnOrderIds: ['column-id-01', 'column-id-03', 'column-id-02'],
     columns: [
       {
         _id: 'column-id-01',
@@ -19,7 +17,7 @@ export const mockData = {
             boardId: 'board-id-01',
             columnId: 'column-id-01',
             title: 'Title of card 01',
-            description: 'Markdown Syntax (sẽ ở khóa nâng cao nhé)',
+            description: 'Markdown Syntax ',
             cover: 'https://fptshop.com.vn/Uploads/Originals/2023/6/24/638232254779120034_00.png',
             memberIds: ['test-user-id-01'],
             comments: ['test comment 01', 'test comment 02'],
