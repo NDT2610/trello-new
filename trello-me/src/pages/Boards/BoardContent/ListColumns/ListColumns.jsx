@@ -6,12 +6,12 @@ import { useState } from 'react'
 function ListColumns({ columns }) {
   const [columnsState, setColumnsState] = useState(columns)
   const handleDeleteColumn = (columnId) => () => {
-    const updatedColumns = columnsState.filter(column => column._id !== columnId)
+    const updatedColumns = columnsState.filter(column => column.list_id !== columnId)
     setColumnsState(updatedColumns)
   }
 
   return (
-    <SortableContext items={columns?.map(c => c._id)} strategy={horizontalListSortingStrategy}>
+    <SortableContext items={columns?.map(c => c.list_id)} strategy={horizontalListSortingStrategy}>
       <Box sx={{
         bgcolor: 'inherit',
         width: '100%',
@@ -27,7 +27,7 @@ function ListColumns({ columns }) {
       }}>
         {/* Render existing columns */}
         {columns.map((column) => (
-          <Column key={column._id} column={column} onDeleteColumn = {handleDeleteColumn} />
+          <Column key={column.list_id} column={column} onDeleteColumn = {handleDeleteColumn} />
         ))}
 
         {/* Add column section */}

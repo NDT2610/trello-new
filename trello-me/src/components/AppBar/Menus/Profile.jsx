@@ -15,8 +15,7 @@ function Profile() {
     setAnchorEl(null)
   }
   const handleLogOut = () => {
-    localStorage.removeItem('accessToken')
-    localStorage.removeItem('id')
+    localStorage.clear()
     navigate('/Login')
   }
 

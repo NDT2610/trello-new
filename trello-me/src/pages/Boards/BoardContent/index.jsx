@@ -1,253 +1,104 @@
-
 import Box from '@mui/material/Box'
 import ListColumns from './ListColumns/ListColumns'
-import { mapOrder } from '~/utils/sorts'
-import { DndContext,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragOverlay,
-  defaultDropAnimationSideEffects,
-  closestCorners
-} from '@dnd-kit/core'
 import { useEffect, useState } from 'react'
-import { arrayMove } from '@dnd-kit/sortable'
-import Column from './ListColumns/Column/Column'
-import Card from './ListColumns/Column/ListCards/Card/Card'
-import { cloneDeep, isEmpty } from 'lodash'
+import { parseInt } from 'lodash'
 import TextField from '@mui/material/TextField'
 import Button from '@mui/material/Button'
 import AddIcon from '@mui/icons-material/Add'
-import generateUniqueId from '../../../api/RandomId'
-import { placeHolderCard } from '../../../utils/formasters'
-const ACTIVE_DRAG_ITEM_TYPE = {
-  COLUMN: 'ACTIVE_DRAG_ITEM_TYPE_COLLUMN',
-  CARD:'ACTIVE_DRAG_ITEM_TYPE_CARD'
-}
-
+import { DndContext, closestCenter, MouseSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core'
 function BoardContent({ board }) {
-  const pointerSensor = useSensor(PointerSensor, { activationConstraint: { distance: 10 } })
-  const sensor = useSensors(pointerSensor)
-
-  const [orderedColumns, setOrderedColumn] = useState([])
-  const [activeDrgagItemId, setActiveDrgagItemId] = useState(null)
-  const [activeDrgagItemIdType, setActiveDrgagItemIdType] = useState(null)
-  const [activeDrgagItemIdData, setActiveDrgagItemIdData] = useState(null)
-  const [oldColumn, setOldColumn] = useState(null)
   const [showColumnNameInput, setShowColumnNameInput] = useState(false)
   const [newColumnName, setNewColumnName] = useState('')
-  const [columns, setColumns] = useState(board.columns)
-  useEffect
+  const [columns, setColumns] = useState([])
+
+  const sensors = useSensors(
+    useSensor(MouseSensor),
+    useSensor(TouchSensor)
+  )
   const handleToggleColumnNameInput = () => {
     setShowColumnNameInput(!showColumnNameInput)
     setNewColumnName('')
   }
+  useEffect(() => {
+    const board_id = parseInt(localStorage.getItem('board_id'))
+    const accessToken = localStorage.getItem('accessToken')
 
+    if (!accessToken) {
+      return
+    }
+
+    fetch(`http://localhost:8000/list/${board_id}`, { method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      }
+    })
+      .then((res) => res.json())
+      .then(data => {
+        setColumns(data)
+      })
+      // eslint-disable-next-line no-console
+      .catch(err => console.log(err))
+  }, [])
   const handleSaveColumnName = () => {
     if (newColumnName.length !== 0) {
-      const newColumn = {
-        _id: generateUniqueId(),
-        boardId: columns[0].boardId,
-        title: newColumnName.trim(),
-        cards: [],
-        cardOrderIds: []
+      const board_id = parseInt(localStorage.getItem('board_id'))
+      const accessToken = localStorage.getItem('accessToken')
+      if (!accessToken) {
+        // eslint-disable-next-line no-console
+        console.error('Token not found')
+        return
       }
-
-      const updatedColumns = Array.isArray(columns) ? [...columns, newColumn] : [newColumn]
-      setOrderedColumn(mapOrder(updatedColumns, board.columnOrderIds, '_id'))
-      setColumns( updatedColumns )
-
-      setShowColumnNameInput(false)
+      const newColumnData = {
+        title: newColumnName.trim(),
+        board_id: board.board_id
+      }
+      fetch(`http://localhost:8000/list/${board_id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`
+        },
+        body: JSON.stringify(newColumnData)
+      })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok')
+          }
+          return response.json()
+        })
+        .then(data => {
+          // Update the state with the new column
+          setColumns(prevColumns => [...prevColumns, data])
+          // Update the orderedColumns state with the updated array
+          setShowColumnNameInput(false)
+        })
+        .catch(error => {
+          // eslint-disable-next-line no-console
+          console.error('Error creating new column:', error)
+        })
     } else {
-      // eslint-disable-next-line no-console
-      console.log('Column name cannot be empty')
+      return
     }
   }
-  useEffect(() => {
-    setOrderedColumn(mapOrder(board?.columns, board?.columnOrderIds, '_id'))
-  }, [board])
-  const findColumnByCardId = (cardId) => {
-    return orderedColumns.find(column => column.cards.map(card => card._id)?.includes(cardId))
-  }
-
   const handleDragEnd = (event) => {
     const { active, over } = event
-    if (!over || !active) return
-    if (activeDrgagItemIdType === ACTIVE_DRAG_ITEM_TYPE.CARD) {
 
-      const { id: activeDraggingCardId, data: { current : activeDraggingCardData } } = active
-      const { id: overCardId } = over
-      const activeColumn = findColumnByCardId(activeDraggingCardId)
-      const overColumn = findColumnByCardId(overCardId)
+    if (active.list_id !== over.list_id) {
+      const newColumns = [...columns]
+      const movedColumn = newColumns.find(column => column.list_id === active.list_id)
+      const overIndex = newColumns.findIndex(column => column.list_id === over.list_id)
+      newColumns.splice(newColumns.indexOf(movedColumn), 1)
+      newColumns.splice(overIndex, 0, movedColumn)
 
-      if ( !activeColumn || !overColumn ) return
-
-      if ( oldColumn._id !== overColumn._id) {
-        setOrderedColumn(prevColumns => {
-          const overCardIndex = overColumn?.cards?.findIndex(card => card._id === overCardId)
-
-          let newCardIndex
-          const isBelowOverItem =
-          active.react &&
-          active.react.current &&
-          active.react.current.translated &&
-          active.react.current.translated.top >
-          over.react.top + over.react.height
-
-          const modifier = isBelowOverItem ? 1 : 0
-
-          newCardIndex = overCardIndex >= 0 ? overCardIndex + modifier : overColumn?.cards?.lenght + 1
-
-          const nextColumns = cloneDeep(prevColumns)
-          const nextActiveColumn = nextColumns.find(column => column._id === activeColumn._id)
-          const nextOverColumn = nextColumns.find(column => column._id === overColumn._id)
-
-
-          if (nextActiveColumn) {
-
-            nextActiveColumn.cards = nextActiveColumn.cards.filter(card => card._id !== activeDraggingCardId)
-
-            if (isEmpty(nextActiveColumn.cards)) {
-              nextActiveColumn.cards = [placeHolderCard(nextActiveColumn)]
-            }
-
-            nextActiveColumn.cardOrderIds = nextActiveColumn.cards.map(card => card._id)
-          }
-
-          if (nextOverColumn) {
-            nextOverColumn.cards = nextOverColumn.cards.filter(card => card._id !== activeDraggingCardId)
-
-            nextOverColumn.cards = nextOverColumn.cards.toSpliced(newCardIndex, 0, { ...activeDraggingCardData, columnId: nextOverColumn._id })
-
-            nextOverColumn.cards = nextOverColumn.cards.filter(card => !card.FE_PlaceholderCard)
-
-            nextOverColumn.cardOrderIds = nextOverColumn.cards.map(card => card._id)
-          }
-
-          return nextColumns
-        })
-
-      } else {
-        const oldCardIndex = oldColumn?.cards?.findIndex(c => c._id === activeDrgagItemId)
-
-        const newCardIndex = overColumn?.cards?.findIndex(c => c._id === overCardId)
-
-        const orderedCard = arrayMove(oldColumn?.cards, oldCardIndex, newCardIndex)
-
-        setOrderedColumn(prevColumns => {
-
-          const nextColumns = cloneDeep(prevColumns)
-
-          const targetColumn = nextColumns.find(c => c._id === overColumn._id)
-
-          targetColumn.cards = orderedCard
-          targetColumn.cardOrderIds = orderedCard.map(card => card._id)
-
-          return nextColumns
-        })
-      }
-    }
-
-
-    if (activeDrgagItemIdType === ACTIVE_DRAG_ITEM_TYPE.COLUMN && active.id !== over.id)
-    {
-      const oldIndex = orderedColumns.findIndex(c => c._id === active.id )
-
-      const newIndex = orderedColumns.findIndex(c => c._id === over.id )
-
-      const newItems = arrayMove(orderedColumns, oldIndex, newIndex)
-      // use for call API
-      //const newItemsIds = newItems.map(c => c._id)
-
-      setOrderedColumn(newItems)
-    }
-    setActiveDrgagItemId(null)
-    setActiveDrgagItemIdType(null)
-    setActiveDrgagItemIdData(null)
-    setOldColumn(null)
-  }
-  const handleDragStart = (event) => {
-    setActiveDrgagItemId(event?.active?.id)
-    setActiveDrgagItemIdType(
-      event?.active?.data?.current?.columnId ? ACTIVE_DRAG_ITEM_TYPE.CARD :
-        ACTIVE_DRAG_ITEM_TYPE.COLUMN)
-    setActiveDrgagItemIdData(event?.active?.data?.current)
-
-    if (event?.active?.data?.current?.columnId) {
-      setOldColumn(findColumnByCardId(event?.active?.id))
+      setColumns(newColumns)
     }
   }
 
-  const handleDragOver = (event) => {
-    if (activeDrgagItemIdType === ACTIVE_DRAG_ITEM_TYPE.COLUMN) return
-
-    const { active, over } = event
-    if (!over || !active) return
-
-    const { id: activeDraggingCardId, data: { current : activeDraggingCardData } } = active
-    const { id: overCardId } = over
-    const activeColumn = findColumnByCardId(activeDraggingCardId)
-    const overColumn = findColumnByCardId(overCardId)
-
-    if ( !activeColumn || !overColumn ) return
-
-    if ( activeColumn._id !== overColumn._id ) {
-      setOrderedColumn(prevColumns => {
-        const overCardIndex = overColumn?.cards?.findIndex(card => card._id === overCardId)
-
-        let newCardIndex
-        const isBelowOverItem =
-        active.react &&
-        active.react.current &&
-        active.react.current.translated &&
-        active.react.current.translated.top >
-        over.react.top + over.react.height
-
-        const modifier = isBelowOverItem ? 1 : 0
-
-        newCardIndex = overCardIndex >= 0 ? overCardIndex + modifier : overColumn?.cards?.lenght + 1
-
-        const nextColumns = cloneDeep(prevColumns)
-        const nextActiveColumn = nextColumns.find(column => column._id === activeColumn._id)
-        const nextOverColumn = nextColumns.find(column => column._id === overColumn._id)
-
-
-        if (nextActiveColumn) {
-
-          nextActiveColumn.cards = nextActiveColumn.cards.filter(card => card._id !== activeDraggingCardId)
-
-          if (isEmpty(nextActiveColumn.cards)) {
-            nextActiveColumn.cards = [placeHolderCard(nextActiveColumn)]
-          }
-
-          nextActiveColumn.cardOrderIds = nextActiveColumn.cards.map(card => card._id)
-        }
-
-        if (nextOverColumn) {
-          nextOverColumn.cards = nextOverColumn.cards.filter(card => card._id !== activeDraggingCardId)
-
-          nextOverColumn.cards = nextOverColumn.cards.toSpliced(newCardIndex, 0, activeDraggingCardData)
-
-          nextOverColumn.cards = nextOverColumn.cards.filter(card => !card.FE_PlaceholderCard)
-
-          nextOverColumn.cardOrderIds = nextOverColumn.cards.map(card => card._id)
-        }
-
-        return nextColumns
-      })
-    }
-  }
-
-  const dropAnimation = {
-    sideEffects: defaultDropAnimationSideEffects({ stypes: { active : { opacity: '0.5 ' } } })
-  }
   return (
     <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
       onDragEnd={handleDragEnd}
-      onDragOver={handleDragOver}
-      onDragStart={handleDragStart}
-      sensors={sensor}
-      collisionDetection={closestCorners}
     >
       <Box sx = {{
         width: '100%',
@@ -258,7 +109,7 @@ function BoardContent({ board }) {
         p: '10px 0'
       }}>
         <Box sx={{ display: 'flex' }}>
-          <ListColumns columns={orderedColumns} />
+          <ListColumns columns={columns} />
           <Box sx={{
             minWidth: '200px',
             maxWidth: '200px',
@@ -272,7 +123,6 @@ function BoardContent({ board }) {
                   value={newColumnName}
                   onChange={(e) => setNewColumnName(e.target.value)}
                   label="New Column Name"
-                  variant="outlined"
                   size="small"
                   sx={{ flex: 1, mr: 1 }}
                 />
@@ -282,7 +132,7 @@ function BoardContent({ board }) {
                   sx={{ color: 'white', pl: 2.5, py: 1, display: 'flex', marginTop: '10px' }}
                   variant="contained"
                 >
-                    Save
+                      Save
                 </Button>
               </>
             ) : (
@@ -292,19 +142,14 @@ function BoardContent({ board }) {
                 sx={{ color: 'white', pl: 2.5, py: 1 }}
                 variant="contained"
               >
-                  Add Column
+                    Add Column
               </Button>
             )}
           </Box>
         </Box>
-
-        <DragOverlay dropAnimation={dropAnimation}>
-          {(!activeDrgagItemIdType) && null}
-          {(activeDrgagItemIdType === ACTIVE_DRAG_ITEM_TYPE.COLUMN) && <Column column={activeDrgagItemIdData}/>}
-          {(activeDrgagItemIdType === ACTIVE_DRAG_ITEM_TYPE.CARD) && <Card card={activeDrgagItemIdData}/>}
-        </DragOverlay>
       </Box>
     </DndContext>
+
   )
 }
 

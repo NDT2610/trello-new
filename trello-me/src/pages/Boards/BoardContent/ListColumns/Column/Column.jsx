@@ -9,14 +9,12 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import DragHandleIcon from '@mui/icons-material/DragHandle'
 import Tooltip from '@mui/material/Tooltip'
 import Button from '@mui/material/Button'
-import { mapOrder } from '~/utils/sorts'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useEffect, useState } from 'react'
 import Box from '@mui/material/Box'
 import ListCards from './ListCards/ListCards'
 import { TextField } from '@mui/material'
-import generateUniqueId from '../../../../../api/RandomId'
 
 
 function Column({ column, onDeleteColumn }) {
@@ -24,46 +22,98 @@ function Column({ column, onDeleteColumn }) {
   const [title, setTitle] = useState(column.title)
   const [editingTitle, setEditingTitle] = useState(false)
   const [newTitle, setNewTitle] = useState(column.title)
-  const [orderedCards, setOrderedCard] = useState([])
   const [showCardNameInput, setShowCardNameInput] = useState(false)
   const [newCardName, setNewCardName] = useState('')
-  const [cards, setCards] = useState(column.cards)
+  const [cards, setCards] = useState([])
   const handleTitleChange = (e) => {
     setTitle(e.target.value)
   }
   const handleSaveTitle = () => {
-    setTitle(newTitle)
+    updateColumnTitle(newTitle)
     setEditingTitle(false)
   }
 
   const handleTitleSubmit = () => {
-    column.title = title
     setEditingTitle(false)
   }
-  useEffect(() => {
-    setOrderedCard(mapOrder(column?.cards, column?.cardOrderIds, '_id'))
-  }, [column])
+  const updateColumnTitle = async (newTitle) => {
+    const accessToken = localStorage.getItem('accessToken')
+    try {
+      const response = await fetch(`http://localhost:8000/list/${column.list_id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`
+        },
+        body: JSON.stringify({ title: newTitle })
+      })
+      if (!response.ok) {
+        throw new Error('Failed to update column title')
+      }
+      // Update state with new title
+      setTitle(newTitle)
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Error updating column title:', error)
+    }
+  }
 
   const handleToggleCardNameInput = () => {
     setShowCardNameInput(!showCardNameInput)
     setNewCardName('')
   }
+  useEffect(() => {
+    const accessToken = localStorage.getItem('accessToken')
 
-  const handleSaveCardName = () => {
-    if (newCardName.length!== 0) {
-      const newCard = {
-        _id: generateUniqueId(),
-        boardId: column.boardId,
-        columnId: column._id,
-        title: newCardName,
-        description: []
+    if (!accessToken) {
+      return
+    }
+
+    fetch(`http://localhost:8000/card/get/${column.list_id}`, { method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
       }
-      const updatedCards = Array.isArray(cards)? [...cards, newCard] : [newCard]
-      column.cards = updatedCards
-      setCards(updatedCards)
-      column.cardOrderIds.push(newCard._id)
-      setOrderedCard(mapOrder(updatedCards, column.cardOrderIds, '_id'))
-      setShowCardNameInput(false)
+    })
+      .then((res) => res.json())
+      .then(data => {
+        setCards(data)
+      })
+      // eslint-disable-next-line no-console
+      .catch(err => console.log(err))
+  }, [column])
+
+  const handleSaveCardName = async () => {
+    if (newCardName.length !== 0) {
+      const accessToken = localStorage.getItem('accessToken')
+      if (!accessToken) {
+        // eslint-disable-next-line no-console
+        console.error('Token not found')
+        return
+      }
+      const newCard = {
+        columnId: column.list_id,
+        title: newCardName,
+        description: 'None'
+      }
+      try {
+        const response = await fetch(`http://localhost:8000/card/${column.list_id}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`
+          },
+          body: JSON.stringify(newCard)
+        })
+        if (!response.ok) {
+          throw new Error('Network response was not ok')
+        }
+        const data = await response.json()
+        setCards(prevCards => [...prevCards, data])
+        setShowCardNameInput(false)
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('Error creating new column:', error)
+      }
     } else {
       // eslint-disable-next-line no-console
       console.error('Card name cannot be empty')
@@ -89,7 +139,7 @@ function Column({ column, onDeleteColumn }) {
     transition,
     isDragging
   } = useSortable({
-    id: column._id,
+    id: column.list_id,
     data: { ...column }
   })
 
@@ -173,7 +223,7 @@ function Column({ column, onDeleteColumn }) {
           </Box>
         </Box>
         {/* {Column body} */}
-        <ListCards cards = {orderedCards}/>
+        <ListCards cards = {cards}/>
         {/* {Column footer} */}
         <Box sx={{
           height: (theme) => {theme.trello.columnFooterHeight},

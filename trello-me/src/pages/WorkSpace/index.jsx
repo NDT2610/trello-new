@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { Box } from '@mui/material'
 import AppBar from '../../components/AppBar'
 import Button from '@mui/material/Button'
@@ -6,8 +7,42 @@ import OutlinedCard from './Board/index'
 import Divider from '@mui/material/Divider'
 import NestedList from './List'
 import Menu from './Menu'
+import { useEffect, useState } from 'react'
 import PermIdentityOutlinedIcon from '@mui/icons-material/PermIdentityOutlined'
+import Link from '@mui/material/Link'
 function Workspace() {
+  const [workspaceData, setWorkspaceData] = useState([])
+
+  useEffect(() => {
+    // Parse the id from localStorage
+    const id = parseInt(localStorage.getItem('id'))
+    const accessToken = localStorage.getItem('accessToken')
+
+    if (!accessToken) {
+      // eslint-disable-next-line no-console
+      console.error('Token not found')
+      return
+    }
+
+    // Fetch workspace data when the component mounts
+    fetch(`http://localhost:8000/boards/${id}`, { method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      }
+    })
+      .then((res) => res.json())
+      .then(data => {
+        setWorkspaceData(data)
+      })
+      .catch(error => {
+        // eslint-disable-next-line no-console
+        console.error('Error fetching workspace data:', error)
+      })
+  }, [])
+  const handleNextPage = (board_id) => {
+    localStorage.setItem('board_id', board_id)
+  }
+  console.log(workspaceData)
   return (
     <Box
       sx={{
@@ -20,7 +55,7 @@ function Workspace() {
         <AppBar/>
       </Box>
       <Box sx={{
-        osition: 'relative',
+        position: 'relative',
         overflowY: 'auto',
         outline: 'none',
         display: 'flex',
@@ -90,7 +125,6 @@ function Workspace() {
                 alignItems: 'center',
                 borderBottom: '2px ridge'
               }}>
-
                 <Box sx={{ p: 2 }}>
                   <h2>Work Space 1
                     <Button type='button'><EditIcon /></Button>
@@ -99,17 +133,19 @@ function Workspace() {
                 <br />
               </Box>
             </Box>
-            <Divider sx={{}} />
+            <Divider />
             <Box sx={{ p: 2, width: '100vh' }}>
               <Box>
                 <h3 style={{ }}> <PermIdentityOutlinedIcon/> Your Board</h3>
               </Box>
-              <Box sx={{ display: 'flex', flexWrap: ' wrap', gap: 1, flex: 1 }}>
-                <OutlinedCard />
-                <OutlinedCard />
-                <OutlinedCard />
-                <OutlinedCard />
-                <OutlinedCard />
+              <Box sx={{ display: 'flex', flexWrap: 'nowrap', gap: 1, flex: 1 }}>
+                {workspaceData.map((boards) => (
+                  <Box key={boards.board_id} onClick={() => handleNextPage(boards.board_id)}>
+                    <Link sx={{ display: 'flex', flexWrap: 'nowrap', gap: 1, flex: 1 }} href="/" underline='none'>
+                      <OutlinedCard boards={boards} />
+                    </Link>
+                  </Box>
+                ))}
               </Box>
             </Box>
           </Box>
