@@ -1,10 +1,13 @@
 import { SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable'
 import Box from '@mui/material/Box'
 import Column from './Column/Column'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 function ListColumns({ columns }) {
-  const [columnsState, setColumnsState] = useState(columns)
+  const [columnsState, setColumnsState] = useState([])
+  useEffect(() => {
+    setColumnsState(column => columns.map((item) => ({ ...item, id: column.id || Math.random() })))
+  }, [columns])
   const handleDeleteColumn = (columnId) => () => {
     const updatedColumns = columnsState.filter(column => column.list_id !== columnId)
     setColumnsState(updatedColumns)
@@ -18,7 +21,7 @@ function ListColumns({ columns }) {
         height: '100%',
         display: 'flex',
         overflowX: 'auto',
-        overflowY: 'hidden',
+        overflowY: 'auto',
         '&::-webkit-scrollbar-track': {
           m: 2,
           borderRadius: '7px',
@@ -26,7 +29,7 @@ function ListColumns({ columns }) {
         }
       }}>
         {/* Render existing columns */}
-        {columns.map((column) => (
+        {columnsState.map((column) => (
           <Column key={column.list_id} column={column} onDeleteColumn = {handleDeleteColumn} />
         ))}
 

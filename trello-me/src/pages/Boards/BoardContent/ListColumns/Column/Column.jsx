@@ -15,8 +15,6 @@ import { useEffect, useState } from 'react'
 import Box from '@mui/material/Box'
 import ListCards from './ListCards/ListCards'
 import { TextField } from '@mui/material'
-
-
 function Column({ column, onDeleteColumn }) {
   const [anchorEl, setAnchorEl] = useState(null)
   const [title, setTitle] = useState(column.title)
@@ -63,23 +61,41 @@ function Column({ column, onDeleteColumn }) {
     setNewCardName('')
   }
   useEffect(() => {
-    const accessToken = localStorage.getItem('accessToken')
-
-    if (!accessToken) {
-      return
-    }
-
-    fetch(`http://localhost:8000/card/get/${column.list_id}`, { method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`
+    const fetchCards = async () => {
+      const accessToken = localStorage.getItem('accessToken')
+      if (!accessToken || !column) {
+        return
       }
-    })
-      .then((res) => res.json())
-      .then(data => {
-        setCards(data)
-      })
-      // eslint-disable-next-line no-console
-      .catch(err => console.log(err))
+      try {
+        const response = await fetch(`http://localhost:8000/card/get/${column.list_id}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`
+          }
+        })
+        if (!response.ok) {
+          throw new Error('Failed to fetch cards')
+        }
+        const data = await response.json()
+        // Convert the index to text format
+        const cardsWithTextIndex = data.map((card, index) => ({
+          ...card,
+          index: (index + 1).toString() // Convert index to string
+        }))
+        const test = cardsWithTextIndex.map(item => {
+          return { ...item, card_id:  Math.random() * item.card_id }
+        })
+        setCards(test)
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('Error fetching cards:', error)
+      }
+    }
+    fetchCards()
+    return () => {
+      // Cleanup function to cancel fetch operation if component unmounts
+      // This prevents potential memory leaks
+    }
   }, [column])
 
   const handleSaveCardName = async () => {
@@ -120,7 +136,7 @@ function Column({ column, onDeleteColumn }) {
     }
   }
   const handleDeleteColumn = () => {
-    onDeleteColumn(column._id)
+    onDeleteColumn(column.list_id)
   }
 
 
@@ -132,31 +148,69 @@ function Column({ column, onDeleteColumn }) {
     setAnchorEl(null)
   }
 
+  const handleDragEnd = async (event) => {
+    const { active, over } = event
+    if (!over || !active) return
+
+    if (active.id !== over.id) {
+      const overIndex = cards.find((card) => card.card_id === over.id).card_id
+      const movedCard = cards.find((card) => card.card_id === active.id)
+      const overCard = cards.find((card) => card.card_id === over.id)
+      const newCards = [...cards]
+      const activeIndex = newCards.indexOf(movedCard)
+      newCards[activeIndex] = overCard
+      newCards[overIndex] = movedCard
+
+      const accessToken = localStorage.getItem('accessToken')
+      if (!accessToken) {
+        return
+      }
+
+      try {
+        await Promise.all(newCards.map(async (card, index) => {
+          // Update the list_id of each column according to the new order
+          await fetch(`http://localhost:8000/card/update/${card.card_id}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${accessToken}`
+            },
+            body: JSON.stringify({ orderCard: index + 1 })// Update the list_id
+          })
+        }))
+
+        // Update the state with the new column order
+        setCards(newCards)
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('Error updating list order:', error)
+        // Handle error
+      }
+    }
+  }
+
 
   const {
-    attributes, listeners, setNodeRef,
+    attributes,
+    listeners,
+    setNodeRef,
     transform,
-    transition,
-    isDragging
+    transition
   } = useSortable({
     id: column.list_id,
     data: { ...column }
   })
 
-  const style = {
+  const columnStyle = {
     transform: CSS.Translate.toString(transform),
     transition,
-    height: '100%',
-    opacity: isDragging ? 0.5 :undefined
+    height: '100%'
   }
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}>
+    <Box
+      ref={setNodeRef} style={columnStyle} {...attributes}>
       <Box
-        {...listeners}
         sx={{
           minWidth: '300px',
           maxWidth:'300px',
@@ -188,8 +242,7 @@ function Column({ column, onDeleteColumn }) {
 
           ): (
             <Typography sx={{
-              fontWeight: 'bold',
-              cursor: 'pointer'
+              fontWeight: 'bold'
             }}
             onClick={() => {setEditingTitle(true), setNewTitle(title)}} >
               {title}
@@ -223,7 +276,7 @@ function Column({ column, onDeleteColumn }) {
           </Box>
         </Box>
         {/* {Column body} */}
-        <ListCards cards = {cards}/>
+        <ListCards cards = {cards} />
         {/* {Column footer} */}
         <Box sx={{
           height: (theme) => {theme.trello.columnFooterHeight},
@@ -252,16 +305,16 @@ function Column({ column, onDeleteColumn }) {
               startIcon={<AddIcon/>}
               sx={{ color: 'white', pl: 2.5, py: 1 }}
             >
-              Add New Card
+                Add New Card
             </Button>
           )
           }
           <Tooltip title= 'Drag to move'>
-            <DragHandleIcon sx={{ cursor: 'pointer' }}/>
+            <DragHandleIcon {...listeners} sx={{ cursor: 'pointer' }}/>
           </Tooltip>
         </Box>
       </Box>
-    </div>
+    </Box>
   )
 }
 

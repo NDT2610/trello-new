@@ -5,16 +5,13 @@ import { parseInt } from 'lodash'
 import TextField from '@mui/material/TextField'
 import Button from '@mui/material/Button'
 import AddIcon from '@mui/icons-material/Add'
-import { DndContext, closestCenter, MouseSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core'
+import { DndContext, closestCenter } from '@dnd-kit/core'
 function BoardContent({ board }) {
   const [showColumnNameInput, setShowColumnNameInput] = useState(false)
   const [newColumnName, setNewColumnName] = useState('')
   const [columns, setColumns] = useState([])
 
-  const sensors = useSensors(
-    useSensor(MouseSensor),
-    useSensor(TouchSensor)
-  )
+
   const handleToggleColumnNameInput = () => {
     setShowColumnNameInput(!showColumnNameInput)
     setNewColumnName('')
@@ -39,6 +36,7 @@ function BoardContent({ board }) {
       // eslint-disable-next-line no-console
       .catch(err => console.log(err))
   }, [])
+
   const handleSaveColumnName = () => {
     if (newColumnName.length !== 0) {
       const board_id = parseInt(localStorage.getItem('board_id'))
@@ -67,9 +65,7 @@ function BoardContent({ board }) {
           return response.json()
         })
         .then(data => {
-          // Update the state with the new column
           setColumns(prevColumns => [...prevColumns, data])
-          // Update the orderedColumns state with the updated array
           setShowColumnNameInput(false)
         })
         .catch(error => {
@@ -80,23 +76,49 @@ function BoardContent({ board }) {
       return
     }
   }
-  const handleDragEnd = (event) => {
+  const handleDragEnd = async (event) => {
     const { active, over } = event
+    if (!over || !active) return
 
-    if (active.list_id !== over.list_id) {
+    if (active.id !== over.id) {
+      const overIndex = columns.findIndex((column) => column.list_id === over.id)
+      const movedColumn = columns.find((column) => column.list_id === active.id)
+      const overColumn = columns.find((column) => column.list_id === over.id)
       const newColumns = [...columns]
-      const movedColumn = newColumns.find(column => column.list_id === active.list_id)
-      const overIndex = newColumns.findIndex(column => column.list_id === over.list_id)
-      newColumns.splice(newColumns.indexOf(movedColumn), 1)
-      newColumns.splice(overIndex, 0, movedColumn)
+      const activeIndex = newColumns.indexOf(movedColumn)
+      newColumns[activeIndex] = overColumn
+      newColumns[overIndex] = movedColumn
 
-      setColumns(newColumns)
+      const accessToken = localStorage.getItem('accessToken')
+      if (!accessToken) {
+        return
+      }
+
+      try {
+        await Promise.all(newColumns.map(async (column, index) => {
+          // Update the list_id of each column according to the new order
+          await fetch(`http://localhost:8000/list/update/${column.list_id}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${accessToken}`
+            },
+            body: JSON.stringify({ orderlist: index + 1 })// Update the list_id
+          })
+        }))
+
+        // Update the state with the new column order
+        setColumns(newColumns)
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('Error updating list order:', error)
+        // Handle error
+      }
     }
   }
 
   return (
     <DndContext
-      sensors={sensors}
       collisionDetection={closestCenter}
       onDragEnd={handleDragEnd}
     >
@@ -131,8 +153,7 @@ function BoardContent({ board }) {
                   startIcon={<AddIcon />}
                   sx={{ color: 'white', pl: 2.5, py: 1, display: 'flex', marginTop: '10px' }}
                   variant="contained"
-                >
-                      Save
+                >Save
                 </Button>
               </>
             ) : (
