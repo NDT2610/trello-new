@@ -4,6 +4,7 @@ import SignInSide from './pages/Auth/Login/Login'
 import SignUp from './pages/Auth/SignUp/Signup'
 import Workspace from './pages/WorkSpace'
 import { useEffect, useState } from 'react'
+import Profile from './pages/Users'
 
 function App() {
   // eslint-disable-next-line no-unused-vars
@@ -23,6 +24,7 @@ function App() {
           <Route path='/Login' element={<SignInSide/>}></Route>
           <Route path='/Signup' element={<SignUp/>}></Route>
           <Route path='/HomePage' element={<Workspace/>}></Route>
+          <Route path='/Profile' element={<Profile/>}></Route>
         </Routes>
       </BrowserRouter>
     </div>

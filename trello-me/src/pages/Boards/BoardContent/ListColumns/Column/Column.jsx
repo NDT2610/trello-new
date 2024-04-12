@@ -15,6 +15,7 @@ import { useEffect, useState } from 'react'
 import Box from '@mui/material/Box'
 import ListCards from './ListCards/ListCards'
 import { TextField } from '@mui/material'
+import { DndContext, closestCenter } from '@dnd-kit/core'
 function Column({ column, onDeleteColumn }) {
   const [anchorEl, setAnchorEl] = useState(null)
   const [title, setTitle] = useState(column.title)
@@ -208,113 +209,118 @@ function Column({ column, onDeleteColumn }) {
   }
 
   return (
-    <Box
-      ref={setNodeRef} style={columnStyle} {...attributes}>
+    <DndContext
+      collisionDetection={closestCenter}
+      onDragEnd={handleDragEnd}
+    >
       <Box
-        sx={{
-          minWidth: '300px',
-          maxWidth:'300px',
-          ml: 2,
-          borderRadius: '6px',
-          bgcolor: (theme) => (theme.palette.mode === 'dark' ? '#333643' : '#95afc0'),
-          height: 'fit-content',
-          maxHeight: (theme) => `calc(${theme.trello.boardContentHeight} - ${theme.spacing(5)})`
-        }}>
+        ref={setNodeRef} style={columnStyle} {...attributes}>
+        <Box
+          sx={{
+            minWidth: '300px',
+            maxWidth:'300px',
+            ml: 2,
+            borderRadius: '6px',
+            bgcolor: (theme) => (theme.palette.mode === 'dark' ? '#333643' : '#95afc0'),
+            height: 'fit-content',
+            maxHeight: (theme) => `calc(${theme.trello.boardContentHeight} - ${theme.spacing(5)})`
+          }}>
 
-        {/* {Column header} */}
-        <Box sx = {{
-          height: (theme) => {theme.trello.columnHeaderHeight},
-          p: 2,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between'
-        }}>
-          {editingTitle ? (
-            <>
-              <TextField
-                value = { title }
-                onChange = { handleTitleChange }
-                onBlur = { handleTitleSubmit }
-              />
-              <Button onClick={handleSaveTitle}>Save</Button>
-              <Button onClick={handleDeleteColumn}>Delete</Button>
-            </>
+          {/* {Column header} */}
+          <Box sx = {{
+            height: (theme) => {theme.trello.columnHeaderHeight},
+            p: 2,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}>
+            {editingTitle ? (
+              <>
+                <TextField
+                  value = { title }
+                  onChange = { handleTitleChange }
+                  onBlur = { handleTitleSubmit }
+                />
+                <Button onClick={handleSaveTitle}>Save</Button>
+                <Button onClick={handleDeleteColumn}>Delete</Button>
+              </>
 
-          ): (
-            <Typography sx={{
-              fontWeight: 'bold'
-            }}
-            onClick={() => {setEditingTitle(true), setNewTitle(title)}} >
-              {title}
-            </Typography>
-          )}
-          <Box>
-            <Tooltip title= 'More Option'>
-              <ExpandMoreIcon
-                sx ={{ color: 'text.primary', cursor: 'pointer' }}
-                id="basic-button-workspace"
-                aria-controls={open ? 'basic-menu-column-dropdown' : undefined}
-                aria-haspopup="true"
-                aria-expanded={open ? 'true' : undefined}
-                onClick={handleClick}
-              />
-            </Tooltip>
-            <Menu
-              id="basic-menu-column-dropdown"
-              anchorEl={anchorEl}
-              open={open}
-              onClose={handleClose}
-              MenuListProps={{
-                'aria-labelledby': 'basic-menu-column-dropdown'
+            ): (
+              <Typography sx={{
+                fontWeight: 'bold'
               }}
-            >
-              <MenuItem>
-                <ListItemIcon><DeleteIcon fontSize="small" /></ListItemIcon>
-                <ListItemText >Remove Column</ListItemText>
-              </MenuItem>
-            </Menu>
+              onClick={() => {setEditingTitle(true), setNewTitle(title)}} >
+                {title}
+              </Typography>
+            )}
+            <Box>
+              <Tooltip title= 'More Option'>
+                <ExpandMoreIcon
+                  sx ={{ color: 'text.primary', cursor: 'pointer' }}
+                  id="basic-button-workspace"
+                  aria-controls={open ? 'basic-menu-column-dropdown' : undefined}
+                  aria-haspopup="true"
+                  aria-expanded={open ? 'true' : undefined}
+                  onClick={handleClick}
+                />
+              </Tooltip>
+              <Menu
+                id="basic-menu-column-dropdown"
+                anchorEl={anchorEl}
+                open={open}
+                onClose={handleClose}
+                MenuListProps={{
+                  'aria-labelledby': 'basic-menu-column-dropdown'
+                }}
+              >
+                <MenuItem>
+                  <ListItemIcon><DeleteIcon fontSize="small" /></ListItemIcon>
+                  <ListItemText >Remove Column</ListItemText>
+                </MenuItem>
+              </Menu>
+            </Box>
+          </Box>
+          {/* {Column body} */}
+          <ListCards cards = {cards} />
+          {/* {Column footer} */}
+          <Box sx={{
+            height: (theme) => {theme.trello.columnFooterHeight},
+            p: 2,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}>
+            {showCardNameInput ? (
+              <>
+                <TextField
+                  value={newCardName}
+                  onChange={(e) => setNewCardName(e.target.value)}
+                  label= 'New Card Name'
+                  variant='outlined'
+                  size='small'
+                  sx={{ flex: 1, mr: 1 }}
+                />
+                <Button
+                  onClick={handleSaveCardName }
+                  sx={{ pl: 2.5, py: 1, display: 'flex', mt: '10px' }}
+                >Save</Button>
+              </>
+            ): (
+              <Button onClick={handleToggleCardNameInput}
+                startIcon={<AddIcon/>}
+                sx={{ color: 'white', pl: 2.5, py: 1 }}
+              >
+                  Add New Card
+              </Button>
+            )
+            }
+            <Tooltip title= 'Drag to move'>
+              <DragHandleIcon {...listeners} sx={{ cursor: 'pointer' }}/>
+            </Tooltip>
           </Box>
         </Box>
-        {/* {Column body} */}
-        <ListCards cards = {cards} />
-        {/* {Column footer} */}
-        <Box sx={{
-          height: (theme) => {theme.trello.columnFooterHeight},
-          p: 2,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between'
-        }}>
-          {showCardNameInput ? (
-            <>
-              <TextField
-                value={newCardName}
-                onChange={(e) => setNewCardName(e.target.value)}
-                label= 'New Card Name'
-                variant='outlined'
-                size='small'
-                sx={{ flex: 1, mr: 1 }}
-              />
-              <Button
-                onClick={handleSaveCardName }
-                sx={{ pl: 2.5, py: 1, display: 'flex', mt: '10px' }}
-              >Save</Button>
-            </>
-          ): (
-            <Button onClick={handleToggleCardNameInput}
-              startIcon={<AddIcon/>}
-              sx={{ color: 'white', pl: 2.5, py: 1 }}
-            >
-                Add New Card
-            </Button>
-          )
-          }
-          <Tooltip title= 'Drag to move'>
-            <DragHandleIcon {...listeners} sx={{ cursor: 'pointer' }}/>
-          </Tooltip>
-        </Box>
       </Box>
-    </Box>
+    </DndContext>
   )
 }
 
