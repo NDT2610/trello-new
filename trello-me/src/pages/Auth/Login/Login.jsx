@@ -11,13 +11,14 @@ import Grid from '@mui/material/Grid'
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
 import Typography from '@mui/material/Typography'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
-
+import { useState } from 'react'
 
 // TODO remove, this demo shouldn't need to reset the theme.
 
 const defaultTheme = createTheme()
 
 export default function SignInSide() {
+  const [error, setError] = useState('')
   const handleSubmit = async (event) => {
     event.preventDefault()
     const data = new FormData(event.currentTarget)
@@ -129,6 +130,9 @@ export default function SignInSide() {
                     { 'Dont have an account? Sign Up' }
                   </Link>
                 </Grid>
+              </Grid>
+              <Grid>
+                <p style={{ fontSize: '12px', color: 'red' }}>{error}</p>
               </Grid>
             </Box>
           </Box>
