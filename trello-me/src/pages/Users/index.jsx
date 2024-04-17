@@ -144,6 +144,26 @@ function Profile() {
                 <TextFieldInput/>
               </Box>
             </Box>
+            <Box>
+              <h3 style={{ position: 'relative', left: '20%' }}>Địa chỉ liên hệ</h3>
+              <Box sx={{
+                position: 'relative',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                p: 0,
+                width: '50%',
+                borderRadius: '3px',
+                boxShadow: '0px 1px 1px #091E4240, 0px 0px 1px #091E424F ',
+                left: '20%',
+                padding: '0 0 0 30px  '
+              }}>
+                <h4>Địa chỉ email</h4>
+                <TextFieldInput/>
+                <h4>Số điện thoai</h4>
+                <TextFieldInput/>
+              </Box>
+            </Box>
           </Box>
         </Box>
       </Container>

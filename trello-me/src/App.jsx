@@ -5,7 +5,8 @@ import SignUp from './pages/Auth/SignUp/Signup'
 import Workspace from './pages/WorkSpace'
 import { useEffect, useState } from 'react'
 import Profile from './pages/Users'
-
+import ResetPassword from './pages/Auth/ForgotPassword/ResetPassword'
+import ForgotPassword from './pages/Auth/ForgotPassword/ForgotPassword'
 function App() {
   // eslint-disable-next-line no-unused-vars
   const [accessToken, setAccessToken] = useState(localStorage.getItem('accessToken'))
@@ -25,6 +26,8 @@ function App() {
           <Route path='/Signup' element={<SignUp/>}></Route>
           <Route path='/HomePage' element={<Workspace/>}></Route>
           <Route path='/Profile' element={<Profile/>}></Route>
+          <Route path='/ResetPassword' element={<ResetPassword/>}></Route>
+          <Route path='/ForgotPassword' element={<ForgotPassword/>}></Route>
         </Routes>
       </BrowserRouter>
     </div>
