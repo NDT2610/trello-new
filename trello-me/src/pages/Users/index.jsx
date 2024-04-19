@@ -16,6 +16,39 @@ function Profile() {
   const [imageUrl, setImageUrl] = useState(null)
   const open = Boolean(anchorEl)
 
+  const handleChangeTitle = async (event) => {
+    event.preventDefault()
+    const data = new FormData(event.currentTarget)
+    const fisrtName = data.get('username')
+    const lastName = data.get('password')
+    const phoneNumber = data.get('phoneNumber')
+    const age = data.get('age')
+    const address = data.get('address')
+    const gender = data.get('gender')
+    const accessToken = localStorage.getItem('accessToken')
+    const id = localStorage.getItem('id')
+    try {
+      const response = await fetch(`hthttp://localhost:8000/profile/${id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`
+        },
+        body: JSON.stringify({
+          fisrtName, lastName, phoneNumber, age, address, gender
+        })
+      })
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message)
+      }
+    }
+    catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Error updating column title:', error)
+    }
+  }
+
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget)
   }
@@ -145,7 +178,7 @@ function Profile() {
               </Box>
             </Box>
             <Box>
-              <h3 style={{ position: 'relative', left: '20%' }}>Địa chỉ liên hệ</h3>
+              <h3 style={{ position: 'relative', left: '20%' }}>Bảo Mật</h3>
               <Box sx={{
                 position: 'relative',
                 display: 'flex',
@@ -158,9 +191,9 @@ function Profile() {
                 left: '20%',
                 padding: '0 0 0 30px  '
               }}>
-                <h4>Địa chỉ email</h4>
+                <h4>Email</h4>
                 <TextFieldInput/>
-                <h4>Số điện thoai</h4>
+                <h4>Mật Khẩu</h4>
                 <TextFieldInput/>
               </Box>
             </Box>
