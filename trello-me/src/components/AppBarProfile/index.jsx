@@ -10,6 +10,7 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
 import Tooltip from '@mui/material/Tooltip'
 import Drawer from '@mui/material/Drawer'
 import TemporaryDrawer from '../AppBar/SideBars'
+import Profile from '../AppBar/Menus/Profile'
 function AppBarProfile() {
   const [open, setOpen] = React.useState(false)
 
@@ -49,6 +50,7 @@ function AppBarProfile() {
         <Tooltip title= 'Help'>
           <HelpOutlineIcon sx={{ cursor: 'pointer', color: 'primary.main' }}/>
         </Tooltip>
+        <Profile/>
       </Box>
     </Box>
   )

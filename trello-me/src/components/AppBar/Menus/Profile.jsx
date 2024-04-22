@@ -14,6 +14,9 @@ function Profile() {
   const handleClose = () => {
     setAnchorEl(null)
   }
+  const handleProfile = () => {
+    navigate('/Profile')
+  }
   const handleLogOut = () => {
     localStorage.clear()
     navigate('/Login')
@@ -43,7 +46,7 @@ function Profile() {
           'aria-labelledby': 'basic-button-profile'
         }}
       >
-        <MenuItem onClick={handleClose}>Profile</MenuItem>
+        <MenuItem onClick={handleProfile }>Profile</MenuItem>
         <MenuItem onClick={handleClose}>My account</MenuItem>
         <MenuItem onClick={handleLogOut}>Logout</MenuItem>
       </Menu>
