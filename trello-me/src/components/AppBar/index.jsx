@@ -7,7 +7,6 @@ import './styles/index.css'
 import Workspace from './Menus/Workspace'
 import Recent from './Menus/Recent'
 import Button from '@mui/material/Button'
-import AddIcon from '@mui/icons-material/Add'
 import TextField from '@mui/material/TextField'
 import Badge from '@mui/material/Badge'
 import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone'
@@ -16,6 +15,8 @@ import Tooltip from '@mui/material/Tooltip'
 import Profile from './Menus/Profile'
 import Drawer from '@mui/material/Drawer'
 import TemporaryDrawer from './SideBars'
+import NestedModal from './Modal'
+
 function AppBar() {
   const [open, setOpen] = React.useState(false)
 
@@ -45,7 +46,7 @@ function AppBar() {
         <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 1 }}>
           <Workspace />
           <Recent/>
-          <Button variant="outlined" sx={{ height: '32px', width: '100%' }} ><AddIcon></AddIcon></Button>
+          <NestedModal/>
         </Box>
       </Box>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>

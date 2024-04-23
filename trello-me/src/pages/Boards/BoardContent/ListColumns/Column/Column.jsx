@@ -24,6 +24,7 @@ function Column({ column, onDeleteColumn }) {
   const [showCardNameInput, setShowCardNameInput] = useState(false)
   const [newCardName, setNewCardName] = useState('')
   const [cards, setCards] = useState([])
+
   const handleTitleChange = (e) => {
     setTitle(e.target.value)
   }
@@ -79,14 +80,7 @@ function Column({ column, onDeleteColumn }) {
         }
         const data = await response.json()
         // Convert the index to text format
-        const cardsWithTextIndex = data.map((card, index) => ({
-          ...card,
-          index: (index + 1).toString() // Convert index to string
-        }))
-        const test = cardsWithTextIndex.map(item => {
-          return { ...item, card_id:  Math.random() * item.card_id }
-        })
-        setCards(test)
+        setCards(data)
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error('Error fetching cards:', error)
@@ -154,9 +148,9 @@ function Column({ column, onDeleteColumn }) {
     if (!over || !active) return
 
     if (active.id !== over.id) {
-      const overIndex = cards.find((card) => card.card_id === over.id).card_id
-      const movedCard = cards.find((card) => card.card_id === active.id)
-      const overCard = cards.find((card) => card.card_id === over.id)
+      const overIndex = cards.findIndex((card) => card.orderCard === over.id)
+      const movedCard = cards.find((card) => card.orderCard=== active.id)
+      const overCard = cards.find((card) => card.orderCard === over.id)
       const newCards = [...cards]
       const activeIndex = newCards.indexOf(movedCard)
       newCards[activeIndex] = overCard

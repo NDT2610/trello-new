@@ -10,8 +10,8 @@ function BoardContent({ board }) {
   const [showColumnNameInput, setShowColumnNameInput] = useState(false)
   const [newColumnName, setNewColumnName] = useState('')
   const [columns, setColumns] = useState([])
-
-
+  // eslint-disable-next-line no-console
+  console.log(columns)
   const handleToggleColumnNameInput = () => {
     setShowColumnNameInput(!showColumnNameInput)
     setNewColumnName('')
@@ -81,9 +81,9 @@ function BoardContent({ board }) {
     if (!over || !active) return
 
     if (active.id !== over.id) {
-      const overIndex = columns.findIndex((column) => column.list_id === over.id)
-      const movedColumn = columns.find((column) => column.list_id === active.id)
-      const overColumn = columns.find((column) => column.list_id === over.id)
+      const overIndex = columns.findIndex((column) => column.orderlist === over.id)
+      const movedColumn = columns.find((column) => column.orderlist === active.id)
+      const overColumn = columns.find((column) => column.orderlist === over.id)
       const newColumns = [...columns]
       const activeIndex = newColumns.indexOf(movedColumn)
       newColumns[activeIndex] = overColumn
