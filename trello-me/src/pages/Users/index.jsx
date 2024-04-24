@@ -219,8 +219,8 @@ function Profile() {
                 />
                 <h4>Số điện thoai</h4>
                 <TextFieldInput
-                  label="Phone Number"
-                  value={profileData.profile_phoneNumber}
+                  label="Address"
+                  value={profileData.profile_address}
                   onSave={(value) => setProfileData({ ...profileData, profile_phoneNumber: value })}
                 />
               </Box>

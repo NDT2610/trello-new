@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 function ListColumns({ columns }) {
   const [columnsState, setColumnsState] = useState([])
   useEffect(() => {
-    setColumnsState(column => columns.map((item) => ({ ...item, id: column.id || Math.random() })))
+    setColumnsState(column => columns.map((item) => ({ ...item, id: `column_${column.list_id}` })))
   }, [columns])
   const handleDeleteColumn = (columnId) => () => {
     const updatedColumns = columnsState.filter(column => column.list_id !== columnId)
@@ -30,7 +30,7 @@ function ListColumns({ columns }) {
       }}>
         {/* Render existing columns */}
         {columnsState.map((column) => (
-          <Column key={column.list_id} column={column} onDeleteColumn = {handleDeleteColumn} />
+          <Column key={column.list_id} column={column} id={`column_${column.list_id}`} onDeleteColumn = {handleDeleteColumn} />
         ))}
 
         {/* Add column section */}

@@ -11,7 +11,6 @@ function BoardContent({ board }) {
   const [newColumnName, setNewColumnName] = useState('')
   const [columns, setColumns] = useState([])
   // eslint-disable-next-line no-console
-  console.log(columns)
   const handleToggleColumnNameInput = () => {
     setShowColumnNameInput(!showColumnNameInput)
     setNewColumnName('')

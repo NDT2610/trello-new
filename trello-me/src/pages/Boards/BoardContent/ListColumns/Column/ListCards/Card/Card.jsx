@@ -12,9 +12,15 @@ import Tooltip from '@mui/material/Tooltip'
 import DragHandleIcon from '@mui/icons-material/DragHandle'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import BasicModal from '../ModalCard'
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
+
 function Card({ card }) {
   const [title, setTitle] = useState(card.title)
   const [editingTitle, setEditingTitle] = useState(false)
+  const [open, setOpen] = useState(false)
+  const handleOpen = () => setOpen(true)
+  const handleClose = () => setOpen(false)
 
   const handleTitleChange = (e) => {
     setTitle(e.target.value)
@@ -35,7 +41,7 @@ function Card({ card }) {
     transform,
     transition
   } = useSortable({
-    id: card.card_id,
+    id: card.id,
     data: { ...card }
   })
   const Style = {
@@ -79,6 +85,7 @@ function Card({ card }) {
             >{title}</Typography>
           )
           }
+          <Button onClick={handleOpen}><EditOutlinedIcon/> </Button>
           <Tooltip title= 'Drag to move' sx={{}}>
             <DragHandleIcon sx={{ cursor: 'pointer' }} {...listeners}/>
           </Tooltip>
@@ -94,9 +101,9 @@ function Card({ card }) {
           }
           {!!card?.attachments?.length &&
           <Button size="small" startIcon={<AttachmentIcon />}>{card?.attachments?.length}</Button>}
-
         </CardActions>}
       </MuiCard>
+      <BasicModal onOpen = {open} onClose = {handleClose}/>
     </Box>
 
   )

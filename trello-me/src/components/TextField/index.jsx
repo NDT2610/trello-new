@@ -2,12 +2,17 @@ import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import TextField from '@mui/material/TextField'
 import Box from '@mui/material/Box'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 function TextFieldInput({ label, value, onSave }) {
   const [isEditing, setIsEditing] = useState(false)
   const [newValue, setNewValue] = useState(value)
 
+  useEffect(() => {
+    if (value.length === 0) {
+      setIsEditing(true)
+    }
+  }, [value])
   const handleSave = () => {
     onSave(newValue)
     setIsEditing(false)
