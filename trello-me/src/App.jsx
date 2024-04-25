@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react'
 import Profile from './pages/Users'
 import ResetPassword from './pages/Auth/ForgotPassword/ResetPassword'
 import ForgotPassword from './pages/Auth/ForgotPassword/ForgotPassword'
+import CreateProfile from './pages/Users/CreateProfile'
 function App() {
   // eslint-disable-next-line no-unused-vars
   const [accessToken, setAccessToken] = useState(localStorage.getItem('accessToken'))
@@ -28,6 +29,7 @@ function App() {
           <Route path='/Profile' element={<Profile/>}></Route>
           <Route path='/ResetPassword' element={<ResetPassword/>}></Route>
           <Route path='/ForgotPassword' element={<ForgotPassword/>}></Route>
+          <Route path='/CreateProfile' element={<CreateProfile/>}></Route>
         </Routes>
       </BrowserRouter>
     </div>
